@@ -16,7 +16,7 @@ async function startBot() {
         // 🔥 MOSTRAR QR MANUALMENTE
         if (qr) {
             console.log("📱 Escanea este QR:")
-            qrcode.generate(qr, { small: true })
+            qrcode.generate(qr, { small: false })
         }
 
         if (connection === "close") {
