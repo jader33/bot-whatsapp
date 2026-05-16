@@ -69,58 +69,122 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
     const user = users[sender]
 
     // 🔥 FLUJO
-    switch (user.step) {
+   switch (user.step) {
 
-        case 0:
-            await sock.sendMessage(sender, {
-                text: "👋 Hola! Bienvenido a Afrossur.\n\n¿Quieres información de:\n1️⃣ Vigilancia\n2️⃣ Bachillerato acelerado?"
-            })
-            user.step = 1
-            break
+    // 🟢 INICIO
+    case 0:
+        await sock.sendMessage(sender, {
+            text: "👋 Hola! Bienvenido a Afrossur.\n\n¿Quieres información de:\n1️⃣ Vigilancia\n2️⃣ Bachillerato acelerado?"
+        })
+        user.step = 1
+        break
 
-        case 1:
-            if (text === "1" || text.toLowerCase().includes("vigilancia")) {
-                user.course = "Vigilancia"
-            } else if (text === "2" || text.toLowerCase().includes("bachillerato")) {
-                user.course = "Bachillerato"
-            } else {
-                await sock.sendMessage(sender, { text: "Por favor responde 1 o 2" })
-                return
-            }
+    // 🟡 ELECCIÓN DE CURSO
+    case 1:
+        if (text === "1" || text.toLowerCase().includes("vigilancia")) {
+            user.course = "Vigilancia"
 
             await sock.sendMessage(sender, {
                 text: "📅 ¿Qué edad tienes?"
             })
+
+            user.step = 5 // flujo diferente
+            return
+
+        } else if (text === "2" || text.toLowerCase().includes("bachillerato")) {
+            user.course = "Bachillerato"
+
+            await sock.sendMessage(sender, {
+                text: `🎓 *Bachillerato Acelerado por ciclos CLEI*
+
+Para ubicarte correctamente, dinos hasta qué nivel llegaste:
+
+1️⃣ CLEI 1 → 1°, 2° y 3°
+2️⃣ CLEI 2 → 4° y 5°
+3️⃣ CLEI 3 → 6° y 7°
+4️⃣ CLEI 4 → 8° y 9°
+5️⃣ CLEI 5 → Grado 10°
+6️⃣ CLEI 6 → Grado 11°
+
+👉 Escribe el número del CLEI en el que terminaste`
+            })
+
             user.step = 2
-            break
+            return
 
-        case 2:
-            user.age = text
+        } else {
+            await sock.sendMessage(sender, { text: "Por favor responde 1 o 2" })
+            return
+        }
+
+    // 🔵 CLEI
+    case 2:
+        const clei = parseInt(text)
+
+        if (clei >= 1 && clei <= 6) {
+            user.clei = clei
 
             await sock.sendMessage(sender, {
-                text: "🎓 ¿Hasta qué grado estudiaste?"
+                text: "📅 ¿Qué edad tienes?"
             })
+
             user.step = 3
-            break
-
-        case 3:
-            user.level = text
-
+        } else {
             await sock.sendMessage(sender, {
-                text: `✅ Gracias!\n\nCurso: ${user.course}\nEdad: ${user.age}\nNivel: ${user.level}\n\nUn asesor te contactará pronto.`
+                text: "❌ Por favor escribe un número del 1 al 6"
             })
+        }
+        break
 
-            console.log("📊 NUEVO CLIENTE:", user)
+    // 🟣 EDAD CON VALIDACIÓN
+    case 3:
+    case 5: // vigilancia también usa este paso
 
+        const edad = parseInt(text)
+
+        if (isNaN(edad)) {
+            await sock.sendMessage(sender, {
+                text: "❌ Por favor escribe una edad válida (solo números)"
+            })
+            return
+        }
+
+        if (edad < 15 || edad > 60) {
+            await sock.sendMessage(sender, {
+                text: "⚠️ Nuestros programas están disponibles para personas entre 15 y 60 años.\n\nSi deseas más información, un asesor puede ayudarte."
+            })
             user.step = 4
-            break
+            return
+        }
 
-        default:
+        user.age = edad
+
+        // flujo bachillerato
+        if (user.course === "Bachillerato") {
+
             await sock.sendMessage(sender, {
-                text: "👍 Ya tenemos tus datos, pronto te contactamos."
+                text: `✅ Gracias!\n\nCurso: Bachillerato\nCLEI: ${user.clei}\nEdad: ${user.age}\n\nUn asesor te contactará pronto.`
             })
-            break
-    }
+
+        } else {
+            // flujo vigilancia
+            await sock.sendMessage(sender, {
+                text: `✅ Gracias!\n\nCurso: Vigilancia\nEdad: ${user.age}\n\nUn asesor te contactará pronto.`
+            })
+        }
+
+        console.log("📊 NUEVO CLIENTE:", user)
+
+        user.step = 4
+        break
+
+    // ⚪ FINAL
+    default:
+        await sock.sendMessage(sender, {
+            text: "👍 Ya tenemos tus datos, pronto te contactamos."
+        })
+        break
+}
 })
 }
 
