@@ -22,11 +22,7 @@ async function startBot() {
             const shouldReconnect =
                 (new Boom(lastDisconnect?.error))?.output?.statusCode !== DisconnectReason.loggedOut
 
-            console.log("❌ Conexión cerrada. Reintentando...", shouldReconnect)
-
-            if (shouldReconnect) {
-                startBot()
-            }
+            if (shouldReconnect) startBot()
 
         } else if (connection === "open") {
             console.log("✅ BOT CONECTADO")
@@ -56,11 +52,7 @@ async function startBot() {
 
         if (!text) return
 
-        console.log("📩 Cliente:", sender, "| Mensaje:", text)
-
-        if (!users[sender]) {
-            users[sender] = { step: 0 }
-        }
+        if (!users[sender]) users[sender] = { step: 0 }
 
         const user = users[sender]
 
@@ -75,6 +67,7 @@ async function startBot() {
 
             case 1:
                 if (text === "1" || text.toLowerCase().includes("vigilancia")) {
+
                     user.course = "Vigilancia"
 
                     await sock.sendMessage(sender, {
@@ -84,17 +77,14 @@ async function startBot() {
                     user.step = 10
                     return
 
-                }
-                else if (text === "2" || text.toLowerCase().includes("bachillerato")) {
-    user.course = "Bachillerato"
+                } else if (text === "2" || text.toLowerCase().includes("bachillerato")) {
 
-    await sock.sendMessage(sender, {
-        image: {
-            url: "https://drive.google.com/file/d/1ZE2edgQa65p3xyD05loQ4zqjF7v9D_UV/view?usp=sharing" // 🔥 CAMBIA POR TU IMAGEN
-        },
-        caption: `🎓 Bachillerato Acelerado CLEI
+                    user.course = "Bachillerato"
 
-Para ubicarte correctamente:
+                    await sock.sendMessage(sender, {
+                        image: {
+                            url: "https://drive.google.com/uc?export=view&id=1ZE2edgQa65p3xyD05loQ4zqjF7v9D_UV"                        },
+                        caption: `🎓 Bachillerato CLEI
 
 1️⃣ CLEI 1 → 1°, 2° y 3°
 2️⃣ CLEI 2 → 4° y 5°
@@ -103,12 +93,17 @@ Para ubicarte correctamente:
 5️⃣ CLEI 5 → 10°
 6️⃣ CLEI 6 → 11°
 
-👉 Escribe el número del CLEI`
-    })
+👉 Escribe el número`
+                    })
 
-    user.step = 2
-    return
-}
+                    user.step = 2
+                    return
+
+                } else {
+                    await sock.sendMessage(sender, { text: "Responde 1 o 2" })
+                    return
+                }
+
             case 2:
                 const clei = parseInt(text)
 
@@ -168,7 +163,6 @@ Edad: ${user.age}
 Modalidad: ${user.mode}`
                 })
 
-                console.log("📊 CLIENTE:", user)
                 user.step = 99
                 break
 
@@ -231,7 +225,6 @@ Edad: ${user.age}
 Modalidad: ${user.mode}`
                 })
 
-                console.log("📊 CLIENTE:", user)
                 user.step = 99
                 break
 
