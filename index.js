@@ -74,53 +74,52 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
     // 🟢 INICIO
     case 0:
         await sock.sendMessage(sender, {
-            text: "👋 Hola! Bienvenido a Afrossur.\n\n¿Quieres información de:\n1️⃣ Vigilancia\n2️⃣ Bachillerato acelerado?"
+            text: "👋 Hola! Bienvenido a Afrossur.\n\n¿En qué curso estás interesado?\n1️⃣ Vigilancia\n2️⃣ Bachillerato acelerado"
         })
         user.step = 1
         break
 
-    // 🟡 ELECCIÓN DE CURSO
+    // 🟡 ELECCIÓN CURSO
     case 1:
         if (text === "1" || text.toLowerCase().includes("vigilancia")) {
             user.course = "Vigilancia"
 
             await sock.sendMessage(sender, {
-                text: "📅 ¿Qué edad tienes?"
+                text: "🔐 ¿Qué tipo de curso deseas?\n\n1️⃣ Básico\n2️⃣ Escolta\n3️⃣ Renovación\n4️⃣ Medios tecnológicos"
             })
 
-            user.step = 5 // flujo diferente
+            user.step = 10
             return
 
         } else if (text === "2" || text.toLowerCase().includes("bachillerato")) {
             user.course = "Bachillerato"
 
             await sock.sendMessage(sender, {
-                text: `🎓 *Bachillerato Acelerado por ciclos CLEI*
+                text: `🎓 Bachillerato Acelerado por ciclos CLEI
 
-Para ubicarte correctamente, dinos hasta qué nivel llegaste:
+Para ubicarte correctamente:
 
 1️⃣ CLEI 1 → 1°, 2° y 3°
 2️⃣ CLEI 2 → 4° y 5°
 3️⃣ CLEI 3 → 6° y 7°
 4️⃣ CLEI 4 → 8° y 9°
-5️⃣ CLEI 5 → Grado 10°
-6️⃣ CLEI 6 → Grado 11°
+5️⃣ CLEI 5 → 10°
+6️⃣ CLEI 6 → 11°
 
-👉 Escribe el número del CLEI en el que terminaste`
+👉 Escribe el número`
             })
 
             user.step = 2
             return
 
         } else {
-            await sock.sendMessage(sender, { text: "Por favor responde 1 o 2" })
+            await sock.sendMessage(sender, { text: "Responde 1 o 2" })
             return
         }
 
     // 🔵 CLEI
     case 2:
         const clei = parseInt(text)
-
         if (clei >= 1 && clei <= 6) {
             user.clei = clei
 
@@ -130,52 +129,126 @@ Para ubicarte correctamente, dinos hasta qué nivel llegaste:
 
             user.step = 3
         } else {
-            await sock.sendMessage(sender, {
-                text: "❌ Por favor escribe un número del 1 al 6"
-            })
+            await sock.sendMessage(sender, { text: "Escribe un número del 1 al 6" })
         }
         break
 
-    // 🟣 EDAD CON VALIDACIÓN
+    // 🟣 EDAD BACHILLERATO
     case 3:
-    case 5: // vigilancia también usa este paso
+        const edadB = parseInt(text)
 
-        const edad = parseInt(text)
-
-        if (isNaN(edad)) {
+        if (edadB < 15 || edadB > 60) {
             await sock.sendMessage(sender, {
-                text: "❌ Por favor escribe una edad válida (solo números)"
+                text: "⚠️ Edad permitida: 15 a 60 años"
             })
             return
         }
 
-        if (edad < 15 || edad > 60) {
-            await sock.sendMessage(sender, {
-                text: "⚠️ Nuestros programas están disponibles para personas entre 15 y 60 años.\n\nSi deseas más información, un asesor puede ayudarte."
-            })
-            user.step = 4
-            return
-        }
+        user.age = edadB
 
-        user.age = edad
-
-        // flujo bachillerato
-        if (user.course === "Bachillerato") {
-
-            await sock.sendMessage(sender, {
-                text: `✅ Gracias!\n\nCurso: Bachillerato\nCLEI: ${user.clei}\nEdad: ${user.age}\n\nUn asesor te contactará pronto.`
-            })
-
-        } else {
-            // flujo vigilancia
-            await sock.sendMessage(sender, {
-                text: `✅ Gracias!\n\nCurso: Vigilancia\nEdad: ${user.age}\n\nUn asesor te contactará pronto.`
-            })
-        }
-
-        console.log("📊 NUEVO CLIENTE:", user)
+        await sock.sendMessage(sender, {
+            text: "📝 Escribe tu nombre completo"
+        })
 
         user.step = 4
+        break
+
+    // 🧑 NOMBRE BACHILLERATO
+    case 4:
+        user.name = text
+
+        await sock.sendMessage(sender, {
+            text: "💻 Modalidad:\n1️⃣ Virtual\n2️⃣ Presencial"
+        })
+
+        user.step = 5
+        break
+
+    // 🎓 MODALIDAD BACHILLERATO
+    case 5:
+        user.mode = text === "1" ? "Virtual" : "Presencial"
+
+        await sock.sendMessage(sender, {
+            text: `✅ Registro completo
+
+Nombre: ${user.name}
+Curso: Bachillerato
+CLEI: ${user.clei}
+Edad: ${user.age}
+Modalidad: ${user.mode}
+
+📲 Un asesor te contactará`
+        })
+
+        console.log("📊 CLIENTE:", user)
+        user.step = 99
+        break
+
+    // 🔐 TIPO CURSO VIGILANCIA
+    case 10:
+        const tipos = ["Básico", "Escolta", "Renovación", "Medios tecnológicos"]
+
+        if (text >= 1 && text <= 4) {
+            user.type = tipos[text - 1]
+
+            await sock.sendMessage(sender, {
+                text: "📅 ¿Qué edad tienes?"
+            })
+
+            user.step = 11
+        } else {
+            await sock.sendMessage(sender, { text: "Responde 1 a 4" })
+        }
+        break
+
+    // 🟠 EDAD VIGILANCIA
+    case 11:
+        const edadV = parseInt(text)
+
+        if (edadV < 18 || edadV > 60) {
+            await sock.sendMessage(sender, {
+                text: "⚠️ Edad permitida: 18 a 60 años"
+            })
+            return
+        }
+
+        user.age = edadV
+
+        await sock.sendMessage(sender, {
+            text: "📝 Escribe tu nombre completo"
+        })
+
+        user.step = 12
+        break
+
+    // 🧑 NOMBRE VIGILANCIA
+    case 12:
+        user.name = text
+
+        await sock.sendMessage(sender, {
+            text: "💻 Modalidad:\n1️⃣ Virtual\n2️⃣ Presencial"
+        })
+
+        user.step = 13
+        break
+
+    // 🎯 MODALIDAD VIGILANCIA
+    case 13:
+        user.mode = text === "1" ? "Virtual" : "Presencial"
+
+        await sock.sendMessage(sender, {
+            text: `✅ Registro completo
+
+Nombre: ${user.name}
+Curso: ${user.type}
+Edad: ${user.age}
+Modalidad: ${user.mode}
+
+📲 Un asesor te contactará`
+        })
+
+        console.log("📊 CLIENTE:", user)
+        user.step = 99
         break
 
     // ⚪ FINAL
