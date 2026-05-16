@@ -84,21 +84,31 @@ async function startBot() {
                     user.step = 10
                     return
 
-                } else if (text === "2" || text.toLowerCase().includes("bachillerato")) {
-                    user.course = "Bachillerato"
-
-                    await sock.sendMessage(sender, {
-                        text: `🎓 Bachillerato CLEI\n\n1️⃣ CLEI 1\n2️⃣ CLEI 2\n3️⃣ CLEI 3\n4️⃣ CLEI 4\n5️⃣ CLEI 5\n6️⃣ CLEI 6\n\n👉 Escribe el número`
-                    })
-
-                    user.step = 2
-                    return
-
-                } else {
-                    await sock.sendMessage(sender, { text: "Responde 1 o 2" })
-                    return
                 }
+                else if (text === "2" || text.toLowerCase().includes("bachillerato")) {
+    user.course = "Bachillerato"
 
+    await sock.sendMessage(sender, {
+        image: {
+            url: "https://drive.google.com/file/d/1ZE2edgQa65p3xyD05loQ4zqjF7v9D_UV/view?usp=sharing" // 🔥 CAMBIA POR TU IMAGEN
+        },
+        caption: `🎓 Bachillerato Acelerado CLEI
+
+Para ubicarte correctamente:
+
+1️⃣ CLEI 1 → 1°, 2° y 3°
+2️⃣ CLEI 2 → 4° y 5°
+3️⃣ CLEI 3 → 6° y 7°
+4️⃣ CLEI 4 → 8° y 9°
+5️⃣ CLEI 5 → 10°
+6️⃣ CLEI 6 → 11°
+
+👉 Escribe el número del CLEI`
+    })
+
+    user.step = 2
+    return
+}
             case 2:
                 const clei = parseInt(text)
 
