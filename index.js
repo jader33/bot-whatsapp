@@ -16,7 +16,14 @@ async function startBot() {
         // 🔥 MOSTRAR QR MANUALMENTE
         if (qr) {
             console.log("📱 Escanea este QR:")
-            qrcode.generate(qr, { small: false })
+            const QRCode = require("qrcode")
+
+if (qr) {
+    QRCode.toDataURL(qr, function (err, url) {
+        console.log("🔗 COPIA ESTE LINK Y ÁBRELO EN EL NAVEGADOR:")
+        console.log(url)
+    })
+}
         }
 
         if (connection === "close") {
