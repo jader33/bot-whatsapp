@@ -71,7 +71,6 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
     // 🔥 FLUJO
    switch (user.step) {
 
-    // 🟢 INICIO
     case 0:
         await sock.sendMessage(sender, {
             text: "👋 Hola! Bienvenido a Afrossur.\n\n¿En qué curso estás interesado?\n1️⃣ Vigilancia\n2️⃣ Bachillerato acelerado"
@@ -79,7 +78,6 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
         user.step = 1
         break
 
-    // 🟡 ELECCIÓN CURSO
     case 1:
         if (text === "1" || text.toLowerCase().includes("vigilancia")) {
             user.course = "Vigilancia"
@@ -95,18 +93,7 @@ sock.ev.on("messages.upsert", async ({ messages, type }) => {
             user.course = "Bachillerato"
 
             await sock.sendMessage(sender, {
-                text: `🎓 Bachillerato Acelerado por ciclos CLEI
-
-Para ubicarte correctamente:
-
-1️⃣ CLEI 1 → 1°, 2° y 3°
-2️⃣ CLEI 2 → 4° y 5°
-3️⃣ CLEI 3 → 6° y 7°
-4️⃣ CLEI 4 → 8° y 9°
-5️⃣ CLEI 5 → 10°
-6️⃣ CLEI 6 → 11°
-
-👉 Escribe el número`
+                text: `🎓 Bachillerato Acelerado CLEI\n\n1️⃣ CLEI 1\n2️⃣ CLEI 2\n3️⃣ CLEI 3\n4️⃣ CLEI 4\n5️⃣ CLEI 5\n6️⃣ CLEI 6\n\n👉 Escribe el número`
             })
 
             user.step = 2
@@ -117,29 +104,29 @@ Para ubicarte correctamente:
             return
         }
 
-    // 🔵 CLEI
     case 2:
         const clei = parseInt(text)
-        if (clei >= 1 && clei <= 6) {
-            user.clei = clei
 
-            await sock.sendMessage(sender, {
-                text: "📅 ¿Qué edad tienes?"
-            })
-
-            user.step = 3
-        } else {
+        if (isNaN(clei) || clei < 1 || clei > 6) {
             await sock.sendMessage(sender, { text: "Escribe un número del 1 al 6" })
+            return
         }
+
+        user.clei = clei
+
+        await sock.sendMessage(sender, {
+            text: "📅 ¿Qué edad tienes?"
+        })
+
+        user.step = 3
         break
 
-    // 🟣 EDAD BACHILLERATO
     case 3:
         const edadB = parseInt(text)
 
-        if (edadB < 15 || edadB > 60) {
+        if (isNaN(edadB) || edadB < 15 || edadB > 60) {
             await sock.sendMessage(sender, {
-                text: "⚠️ Edad permitida: 15 a 60 años"
+                text: "⚠️ Edad válida entre 15 y 60 años"
             })
             return
         }
@@ -153,7 +140,6 @@ Para ubicarte correctamente:
         user.step = 4
         break
 
-    // 🧑 NOMBRE BACHILLERATO
     case 4:
         user.name = text
 
@@ -164,7 +150,6 @@ Para ubicarte correctamente:
         user.step = 5
         break
 
-    // 🎓 MODALIDAD BACHILLERATO
     case 5:
         user.mode = text === "1" ? "Virtual" : "Presencial"
 
@@ -175,39 +160,37 @@ Nombre: ${user.name}
 Curso: Bachillerato
 CLEI: ${user.clei}
 Edad: ${user.age}
-Modalidad: ${user.mode}
-
-📲 Un asesor te contactará`
+Modalidad: ${user.mode}`
         })
 
         console.log("📊 CLIENTE:", user)
         user.step = 99
         break
 
-    // 🔐 TIPO CURSO VIGILANCIA
     case 10:
+        const opcion = parseInt(text)
         const tipos = ["Básico", "Escolta", "Renovación", "Medios tecnológicos"]
 
-        if (text >= 1 && text <= 4) {
-            user.type = tipos[text - 1]
-
-            await sock.sendMessage(sender, {
-                text: "📅 ¿Qué edad tienes?"
-            })
-
-            user.step = 11
-        } else {
+        if (isNaN(opcion) || opcion < 1 || opcion > 4) {
             await sock.sendMessage(sender, { text: "Responde 1 a 4" })
+            return
         }
+
+        user.type = tipos[opcion - 1]
+
+        await sock.sendMessage(sender, {
+            text: "📅 ¿Qué edad tienes?"
+        })
+
+        user.step = 11
         break
 
-    // 🟠 EDAD VIGILANCIA
     case 11:
         const edadV = parseInt(text)
 
-        if (edadV < 18 || edadV > 60) {
+        if (isNaN(edadV) || edadV < 18 || edadV > 60) {
             await sock.sendMessage(sender, {
-                text: "⚠️ Edad permitida: 18 a 60 años"
+                text: "⚠️ Edad válida entre 18 y 60 años"
             })
             return
         }
@@ -221,7 +204,6 @@ Modalidad: ${user.mode}
         user.step = 12
         break
 
-    // 🧑 NOMBRE VIGILANCIA
     case 12:
         user.name = text
 
@@ -232,7 +214,6 @@ Modalidad: ${user.mode}
         user.step = 13
         break
 
-    // 🎯 MODALIDAD VIGILANCIA
     case 13:
         user.mode = text === "1" ? "Virtual" : "Presencial"
 
@@ -242,16 +223,13 @@ Modalidad: ${user.mode}
 Nombre: ${user.name}
 Curso: ${user.type}
 Edad: ${user.age}
-Modalidad: ${user.mode}
-
-📲 Un asesor te contactará`
+Modalidad: ${user.mode}`
         })
 
         console.log("📊 CLIENTE:", user)
         user.step = 99
         break
 
-    // ⚪ FINAL
     default:
         await sock.sendMessage(sender, {
             text: "👍 Ya tenemos tus datos, pronto te contactamos."
