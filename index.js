@@ -19,10 +19,18 @@ async function startBot() {
             const QRCode = require("qrcode")
 
 if (qr) {
+    const QRCode = require("qrcode")
+
+if (qr) {
     QRCode.toDataURL(qr, function (err, url) {
-        console.log("🔗 COPIA ESTE LINK Y ÁBRELO EN EL NAVEGADOR:")
-        console.log(url)
+        console.log("🔗 QR EN PARTES (cópialo completo):")
+
+        // dividir en partes de 100 caracteres
+        for (let i = 0; i < url.length; i += 100) {
+            console.log(url.substring(i, i + 100))
+        }
     })
+}
 }
         }
 
