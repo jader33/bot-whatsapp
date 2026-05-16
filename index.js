@@ -14,25 +14,12 @@ async function startBot() {
         const { connection, lastDisconnect, qr } = update
 
         // 🔥 MOSTRAR QR MANUALMENTE
-        if (qr) {
-            console.log("📱 Escanea este QR:")
-            const QRCode = require("qrcode")
+    if (qr) {
+    const qrLink = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`
 
-if (qr) {
-    const QRCode = require("qrcode")
-
-if (qr) {
-    QRCode.toDataURL(qr, function (err, url) {
-        console.log("🔗 QR EN PARTES (cópialo completo):")
-
-        // dividir en partes de 100 caracteres
-        for (let i = 0; i < url.length; i += 100) {
-            console.log(url.substring(i, i + 100))
-        }
-    })
+    console.log("🔗 ABRE ESTE LINK PARA ESCANEAR EL QR:")
+    console.log(qrLink)
 }
-}
-        }
 
         if (connection === "close") {
             const shouldReconnect =
